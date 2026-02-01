@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Traffic Simulation - Custom Input</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .setup-panel {
+            background: #f3f4f6;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .setup-panel.hidden {
+            display: none;
+        }
+
+        .setup-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .mode-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .mode-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .mode-card:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .mode-card.selected {
+            border-color: #667eea;
+            background: #ede9fe;
+        }
+
+        .mode-icon {
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .mode-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .mode-desc {
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+        }
+
+        .input-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-section.hidden {
+            display: none;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .input-field {
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .cycle-config {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .config-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .scenario-btn {
+            padding: 15px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .scenario-btn:hover {
+            border-color: #667eea;
+            background: #f3f4f6;
+        }
+
+        .scenario-btn.selected {
+            border-color: #667eea;
+            background: #ede9fe;
+        }
+
+        /* Status bar and display elements (same as before) */
+        .status-bar {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .status-bar.hidden {
+            display: none;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .main-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .main-display.hidden {
+            display: none;
+        }
+
+        @media (max-width: 968px) {
+            .main-display {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .intersection {
+            background: #1f2937;
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        .intersection-title {
+            color: white;
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .lanes-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            min-height: 400px;
+        }
+
+        .lane {
+            background: #374151;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .lane.active-green {
+            background: #10b981;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .lane.active-yellow {
+            background: #f59e0b;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+        }
+
+        .lane-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .lane-state {
+            font-size: 1.2em;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .lane-timer {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+
+        .lane-vehicles {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .cycle-info {
+            background: #f3f4f6;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .cycle-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .timing-display {
+            display: grid;
+            gap: 15px;
+        }
+
+        .timing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .timing-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .timing-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s linear;
+        }
+
+        .buffer-warning {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        .buffer-warning.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .buffer-text {
+            font-weight: bold;
+            color: #92400e;
+            text-align: center;
+        }
+
+        .vehicle-counts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .vehicle-counts.hidden {
+            display: none;
+        }
+
+        .vehicle-count-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .vehicle-count-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .vehicle-count-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚦 Interactive Traffic Simulation</h1>
+        <p class="subtitle">Test Your Algorithm with Custom Vehicle Counts</p>
+
+        <!-- Setup Panel -->
+        <div class="setup-panel" id="setupPanel">
+            <h2 class="setup-title">Configure Your Simulation</h2>
+
+            <!-- Mode Selection -->
+            <div class="mode-selection">
+                <div class="mode-card" onclick="selectMode('random')">
+                    <div class="mode-icon">🎲</div>
+                    <div class="mode-title">Random Mode</div>
+                    <div class="mode-desc">Automatically generate vehicle counts</div>
+                </div>
+                <div class="mode-card" onclick="selectMode('custom')">
+                    <div class="mode-icon">✏️</div>
+                    <div class="mode-title">Custom Input</div>
+                    <div class="mode-desc">Manually enter vehicle counts</div>
+                </div>
+                <div class="mode-card" onclick="selectMode('scenario')">
+                    <div class="mode-icon">📋</div>
+                    <div class="mode-title">Test Scenarios</div>
+                    <div class="mode-desc">Pre-defined test cases</div>
+                </div>
+            </div>
+
+            <!-- Number of Cycles -->
+            <div class="cycle-config">
+                <div class="config-item">
+                    <label class="input-label">Number of Cycles:</label>
+                    <input type="number" class="input-field" id="numCycles" value="3" min="1" max="10">
+                </div>
+            </div>
+
+            <!-- Custom Input Section -->
+            <div class="input-section hidden" id="customInputSection">
+                <div class="alert alert-info">
+                    <strong>💡 Tip:</strong> Enter vehicle counts for each lane (0-150). The algorithm will calculate optimal green times.
+                </div>
+                <div id="customInputCycles"></div>
+            </div>
+
+            <!-- Scenario Selection -->
+            <div class="input-section hidden" id="scenarioSection">
+                <div class="scenario-grid">
+                    <div class="scenario-btn" onclick="selectScenario('light')">
+                        <strong>🌤️ Light Traffic</strong><br>
+                        <small>5-15 vehicles/lane</small>
+                    </div>
+                    <div class="scenario-btn" onclick="selectScenario('moderate')">
+                        <strong>🌥️ Moderate Traffic</strong><br>
+                        <small>15-30 vehicles/lane</small>
+                    </div>
+                    <div class="scenario-btn" onclick="selectScenario('heavy')">
+                        <strong>⛈️ Heavy Traffic</strong><br>
+                        <small>30-50 vehicles/lane</small>
+                    </div>
+                    <div class="scenario-btn" onclick="selectScenario('unbalanced')">
+                        <strong>⚖️ Unbalanced</strong><br>
+                        <small>One lane busy</small>
+                    </div>
+                    <div class="scenario-btn" onclick="selectScenario('emergency')">
+                        <strong>🚨 Emergency</strong><br>
+                        <small>One lane critical</small>
+                    </div>
+                    <div class="scenario-btn" onclick="selectScenario('minimum')">
+                        <strong>🔽 Minimum</strong><br>
+                        <small>All lanes minimal</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-success" onclick="startSimulation()">▶ Start Simulation</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar hidden" id="statusBar">
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">Current Cycle</div>
+                    <div class="status-value" id="cycleNumber">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Cycle Progress</div>
+                    <div class="status-value" id="cycleProgress">0%</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Time Remaining</div>
+                    <div class="status-value" id="timeRemaining">--</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">System Status</div>
+                    <div class="status-value" id="systemStatus">Running</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="btn-group" style="margin-top: 20px;">
+                <button class="btn-danger" onclick="stopSimulation()">⏸ Pause</button>
+                <button class="btn-secondary" onclick="resetSimulation()">🔄 Reset & Reconfigure</button>
+            </div>
+        </div>
+
+        <!-- Vehicle Counts Display -->
+        <div class="vehicle-counts hidden" id="vehicleCountsDisplay">
+            <div class="vehicle-count-box">
+                <div class="vehicle-count-label">Lane 1 Vehicles</div>
+                <div class="vehicle-count-value" id="vehicles1">0</div>
+            </div>
+            <div class="vehicle-count-box">
+                <div class="vehicle-count-label">Lane 2 Vehicles</div>
+                <div class="vehicle-count-value" id="vehicles2">0</div>
+            </div>
+            <div class="vehicle-count-box">
+                <div class="vehicle-count-label">Lane 3 Vehicles</div>
+                <div class="vehicle-count-value" id="vehicles3">0</div>
+            </div>
+            <div class="vehicle-count-box">
+                <div class="vehicle-count-label">Lane 4 Vehicles</div>
+                <div class="vehicle-count-value" id="vehicles4">0</div>
+            </div>
+        </div>
+
+        <!-- Main Display -->
+        <div class="main-display hidden" id="mainDisplay">
+            <div class="intersection">
+                <h3 class="intersection-title">Traffic Intersection - Current Cycle</h3>
+                <div class="lanes-container">
+                    <div class="lane" id="lane1">
+                        <div class="lane-number">Lane 1</div>
+                        <div class="lane-state" id="state1">RED</div>
+                        <div class="lane-timer" id="timer1">--</div>
+                        <div class="lane-vehicles">Green: <span id="green1">--</span>s | Yellow: 5s</div>
+                    </div>
+                    <div class="lane" id="lane2">
+                        <div class="lane-number">Lane 2</div>
+                        <div class="lane-state" id="state2">RED</div>
+                        <div class="lane-timer" id="timer2">--</div>
+                        <div class="lane-vehicles">Green: <span id="green2">--</span>s | Yellow: 5s</div>
+                    </div>
+                    <div class="lane" id="lane3">
+                        <div class="lane-number">Lane 3</div>
+                        <div class="lane-state" id="state3">RED</div>
+                        <div class="lane-timer" id="timer3">--</div>
+                        <div class="lane-vehicles">Green: <span id="green3">--</span>s | Yellow: 5s</div>
+                    </div>
+                    <div class="lane" id="lane4">
+                        <div class="lane-number">Lane 4</div>
+                        <div class="lane-state" id="state4">RED</div>
+                        <div class="lane-timer" id="timer4">--</div>
+                        <div class="lane-vehicles">Green: <span id="green4">--</span>s | Yellow: 5s</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cycle-info">
+                <h3 class="cycle-title">Cycle Timing Information</h3>
+                <div class="timing-display">
+                    <div class="timing-row">
+                        <span class="timing-label">Total Cycle Time:</span>
+                        <span class="timing-value" id="totalCycleTime">--</span>
+                    </div>
+                    <div class="timing-row">
+                        <span class="timing-label">Total Green Time:</span>
+                        <span class="timing-value" id="totalGreenTime">--</span>
+                    </div>
+                    <div class="timing-row">
+                        <span class="timing-label">Total Yellow Time:</span>
+                        <span class="timing-value" id="totalYellowTime">20s</span>
+                    </div>
+                    <div class="timing-row">
+                        <span class="timing-label">Current Active Lane:</span>
+                        <span class="timing-value" id="activeLane">None</span>
+                    </div>
+                </div>
+
+                <div class="buffer-warning" id="bufferWarning">
+                    <div class="buffer-text">
+                        ⚠️ PRE-CALCULATION BUFFER ACTIVE<br>
+                        Collecting vehicle counts for next cycle...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let selectedMode = null;
+        let selectedScenario = null;
+        let customCounts = [];
+        
+        // Simulation state
+        let isRunning = false;
+        let currentCycle = 0;
+        let currentLane = 0;
+        let currentPhase = 'red';
+        let phaseTimeRemaining = 0;
+        let totalCycleTime = 0;
+        let cycleElapsed = 0;
+        let greenTimes = [30, 30, 30, 30];
+        let yellowTimes = [5, 5, 5, 5];
+        let vehicleCounts = [0, 0, 0, 0];
+        let nextCycleData = null;
+        let isPreCalculating = false;
+        let simulationCounts = [];
+
+        const PRE_CALC_BUFFER = 10;
+        const MIN_GREEN = 15;
+        const MAX_GREEN = 90;
+        const BASE_CYCLE = 120;
+
+        // Test scenarios
+        const scenarios = {
+            light: [[8, 10, 12, 9], [7, 11, 10, 8], [9, 8, 11, 10]],
+            moderate: [[18, 22, 25, 20], [20, 24, 18, 22], [19, 21, 23, 20]],
+            heavy: [[35, 40, 38, 42], [40, 38, 41, 39], [37, 42, 40, 38]],
+            unbalanced: [[50, 10, 8, 12], [8, 45, 10, 9], [10, 8, 48, 11]],
+            emergency: [[80, 15, 12, 10], [12, 75, 10, 15], [10, 12, 85, 8]],
+            minimum: [[5, 5, 5, 5], [3, 4, 3, 4], [2, 3, 2, 3]]
+        };
+
+        function selectMode(mode) {
+            selectedMode = mode;
+            
+            // Update UI
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.mode-card').classList.add('selected');
+            
+            // Show/hide sections
+            document.getElementById('customInputSection').classList.add('hidden');
+            document.getElementById('scenarioSection').classList.add('hidden');
+            
+            if (mode === 'custom') {
+                generateCustomInputFields();
+                document.getElementById('customInputSection').classList.remove('hidden');
+            } else if (mode === 'scenario') {
+                document.getElementById('scenarioSection').classList.remove('hidden');
+            }
+        }
+
+        function generateCustomInputFields() {
+            const numCycles = parseInt(document.getElementById('numCycles').value);
+            const container = document.getElementById('customInputCycles');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < numCycles; i++) {
+                const cycleDiv = document.createElement('div');
+                cycleDiv.style.marginBottom = '20px';
+                cycleDiv.innerHTML = `
+                    <h4 style="margin-bottom: 10px; color: #333;">Cycle ${i + 1} Vehicle Counts:</h4>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label class="input-label">Lane 1</label>
+                            <input type="number" class="input-field" id="c${i}_l1" value="20" min="0" max="150">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Lane 2</label>
+                            <input type="number" class="input-field" id="c${i}_l2" value="20" min="0" max="150">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Lane 3</label>
+                            <input type="number" class="input-field" id="c${i}_l3" value="20" min="0" max="150">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Lane 4</label>
+                            <input type="number" class="input-field" id="c${i}_l4" value="20" min="0" max="150">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cycleDiv);
+            }
+        }
+
+        function selectScenario(scenario) {
+            selectedScenario = scenario;
+            
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.closest('.scenario-btn').classList.add('selected');
+            
+            // Update cycle count
+            document.getElementById('numCycles').value = scenarios[scenario].length;
+        }
+
+        document.getElementById('numCycles').addEventListener('change', function() {
+            if (selectedMode === 'custom') {
+                generateCustomInputFields();
+            }
+        });
+
+        function getSimulationCounts() {
+            const numCycles = parseInt(document.getElementById('numCycles').value);
+            
+            if (selectedMode === 'random') {
+                // Generate random counts
+                const counts = [];
+                for (let i = 0; i < numCycles; i++) {
+                    const base = Math.floor(Math.random() * 25) + 5;
+                    counts.push([
+                        Math.max(0, base + Math.floor(Math.random() * 25) - 10),
+                        Math.max(0, base + Math.floor(Math.random() * 25) - 10),
+                        Math.max(0, base + Math.floor(Math.random() * 25) - 10),
+                        Math.max(0, base + Math.floor(Math.random() * 25) - 10)
+                    ]);
+                }
+                return counts;
+            } else if (selectedMode === 'custom') {
+                // Get custom input
+                const counts = [];
+                for (let i = 0; i < numCycles; i++) {
+                    counts.push([
+                        parseInt(document.getElementById(`c${i}_l1`).value),
+                        parseInt(document.getElementById(`c${i}_l2`).value),
+                        parseInt(document.getElementById(`c${i}_l3`).value),
+                        parseInt(document.getElementById(`c${i}_l4`).value)
+                    ]);
+                }
+                return counts;
+            } else if (selectedMode === 'scenario') {
+                return scenarios[selectedScenario];
+            }
+            
+            return [];
+        }
+
+        function startSimulation() {
+            if (!selectedMode) {
+                alert('Please select a simulation mode first!');
+                return;
+            }
+            
+            if (selectedMode === 'scenario' && !selectedScenario) {
+                alert('Please select a test scenario!');
+                return;
+            }
+            
+            // Get simulation data
+            simulationCounts = getSimulationCounts();
+            
+            if (simulationCounts.length === 0) {
+                alert('No vehicle counts available!');
+                return;
+            }
+            
+            // Hide setup, show simulation
+            document.getElementById('setupPanel').classList.add('hidden');
+            document.getElementById('statusBar').classList.remove('hidden');
+            document.getElementById('vehicleCountsDisplay').classList.remove('hidden');
+            document.getElementById('mainDisplay').classList.remove('hidden');
+            
+            // Initialize simulation
+            isRunning = true;
+            currentCycle = 0;
+            vehicleCounts = simulationCounts[0];
+            
+            updateVehicleDisplay();
+            greenTimes = calculateGreenTimes(vehicleCounts);
+            totalCycleTime = greenTimes.reduce((a, b) => a + b, 0) + 20;
+            updateGreenTimesDisplay();
+            
+            startNewCycle();
+            runSimulation();
+        }
+
+        function stopSimulation() {
+            isRunning = false;
+            document.getElementById('systemStatus').textContent = 'Paused';
+        }
+
+        function resetSimulation() {
+            isRunning = false;
+            currentCycle = 0;
+            currentLane = 0;
+            nextCycleData = null;
+            isPreCalculating = false;
+            
+            // Show setup, hide simulation
+            document.getElementById('setupPanel').classList.remove('hidden');
+            document.getElementById('statusBar').classList.add('hidden');
+            document.getElementById('vehicleCountsDisplay').classList.add('hidden');
+            document.getElementById('mainDisplay').classList.add('hidden');
+            
+            // Reset display
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`lane${i}`).className = 'lane';
+                document.getElementById(`state${i}`).textContent = 'RED';
+                document.getElementById(`timer${i}`).textContent = '--';
+            }
+        }
+
+        function calculateGreenTimes(counts) {
+            const totalCars = counts.reduce((a, b) => a + b, 0);
+            const NUM_LANES = 4;
+            
+            // Step 1: Calculate base cycle time
+            let greenCycleTime = BASE_CYCLE;
+            if (totalCars > 100) {
+                const increments = Math.floor((totalCars - 100) / 10);
+                greenCycleTime = Math.min(BASE_CYCLE + increments * 10, 180);
+            }
+            
+            // Step 2: Initial allocation
+            const greenTimesRaw = [];
+            const fixedLanes = [];
+            const adjustableLanes = [];
+            let remainingTime = greenCycleTime - (MIN_GREEN * NUM_LANES);
+            
+            for (let idx = 0; idx < counts.length; idx++) {
+                if (counts[idx] <= MIN_GREEN) {
+                    greenTimesRaw.push(MIN_GREEN);
+                    fixedLanes.push(idx);
+                } else {
+                    const time = MIN_GREEN + ((counts[idx] - MIN_GREEN) / totalCars) * remainingTime;
+                    greenTimesRaw.push(time);
+                    adjustableLanes.push(idx);
+                }
+            }
+            
+            // Step 3: Normalize adjustable lanes
+            let fixedSum = 0;
+            for (let idx of fixedLanes) {
+                fixedSum += greenTimesRaw[idx];
+            }
+            const adjustableCycleTime = greenCycleTime - fixedSum;
+            let adjustableRawSum = 0;
+            for (let idx of adjustableLanes) {
+                adjustableRawSum += greenTimesRaw[idx];
+            }
+            
+            const greenTimes = greenTimesRaw.slice();
+            if (adjustableRawSum > 0) {
+                for (let idx of adjustableLanes) {
+                    greenTimes[idx] = (greenTimesRaw[idx] / adjustableRawSum) * adjustableCycleTime;
+                }
+            }
+            
+            // Step 4: Enforce maximum time
+            while (true) {
+                let excessTime = 0;
+                const underMaxLanes = [];
+                
+                for (let idx of adjustableLanes) {
+                    if (greenTimes[idx] > MAX_GREEN) {
+                        excessTime += greenTimes[idx] - MAX_GREEN;
+                        greenTimes[idx] = MAX_GREEN;
+                    } else {
+                        underMaxLanes.push(idx);
+                    }
+                }
+                
+                if (excessTime > 0 && underMaxLanes.length > 0) {
+                    const distribute = excessTime / underMaxLanes.length;
+                    for (let idx of underMaxLanes) {
+                        greenTimes[idx] += distribute;
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            // Step 5: Final rounding and balancing
+            const greenTimesRounded = greenTimes.map(t => Math.round(t));
+            let diff = greenCycleTime - greenTimesRounded.reduce((a, b) => a + b, 0);
+            
+            // Distribute rounding difference evenly across adjustable lanes
+            if (diff !== 0 && adjustableLanes.length > 0) {
+                const diffAbs = Math.abs(diff);
+                const diffDirection = diff > 0 ? 1 : -1;
+                
+                for (let i = 0; i < diffAbs; i++) {
+                    const laneIdx = adjustableLanes[i % adjustableLanes.length];
+                    greenTimesRounded[laneIdx] += diffDirection;
+                }
+            }
+            
+            return greenTimesRounded;
+        }
+
+        function updateVehicleDisplay() {
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`vehicles${i+1}`).textContent = vehicleCounts[i];
+            }
+        }
+
+        function updateGreenTimesDisplay() {
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`green${i+1}`).textContent = greenTimes[i];
+            }
+        }
+
+        function startNewCycle() {
+            currentCycle++;
+            cycleElapsed = 0;
+            
+            document.getElementById('cycleNumber').textContent = currentCycle;
+            document.getElementById('totalCycleTime').textContent = `${totalCycleTime}s`;
+            document.getElementById('totalGreenTime').textContent = `${greenTimes.reduce((a,b) => a+b, 0)}s`;
+            
+            startLanePhase(0);
+        }
+
+        function startLanePhase(laneIndex) {
+            currentLane = laneIndex;
+            currentPhase = 'green';
+            phaseTimeRemaining = greenTimes[laneIndex];
+            
+            const laneNum = laneIndex + 1;
+            document.getElementById(`lane${laneNum}`).className = 'lane active-green';
+            document.getElementById(`state${laneNum}`).textContent = 'GREEN';
+            document.getElementById(`activeLane`).textContent = `Lane ${laneNum} (Green)`;
+        }
+
+        async function preCalculateNextCycle() {
+            if (isPreCalculating || currentCycle >= simulationCounts.length) return;
+            
+            isPreCalculating = true;
+            document.getElementById('bufferWarning').classList.add('active');
+            
+            await sleep(500);
+            
+            const nextCounts = simulationCounts[currentCycle] || vehicleCounts;
+            
+            await sleep(2000);
+            
+            const nextGreen = calculateGreenTimes(nextCounts);
+            const nextTotal = nextGreen.reduce((a, b) => a + b, 0) + 20;
+            
+            nextCycleData = {
+                greenTimes: nextGreen,
+                yellowTimes: [5, 5, 5, 5],
+                vehicleCounts: nextCounts,
+                totalCycleTime: nextTotal
+            };
+            
+            document.getElementById('bufferWarning').classList.remove('active');
+            isPreCalculating = false;
+        }
+
+        async function runSimulation() {
+            while (isRunning) {
+                await sleep(1000);
+                
+                if (!isRunning) break;
+                
+                cycleElapsed++;
+                phaseTimeRemaining--;
+                
+                const laneNum = currentLane + 1;
+                document.getElementById(`timer${laneNum}`).textContent = phaseTimeRemaining;
+                
+                const progress = (cycleElapsed / totalCycleTime) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+                document.getElementById('cycleProgress').textContent = `${Math.round(progress)}%`;
+                document.getElementById('timeRemaining').textContent = `${totalCycleTime - cycleElapsed}s`;
+                
+                const timeRemaining = totalCycleTime - cycleElapsed;
+                if (timeRemaining === PRE_CALC_BUFFER && !isPreCalculating) {
+                    preCalculateNextCycle();
+                }
+                
+                if (phaseTimeRemaining <= 0) {
+                    if (currentPhase === 'green') {
+                        currentPhase = 'yellow';
+                        phaseTimeRemaining = yellowTimes[currentLane];
+                        
+                        document.getElementById(`lane${laneNum}`).className = 'lane active-yellow';
+                        document.getElementById(`state${laneNum}`).textContent = 'YELLOW';
+                        document.getElementById(`activeLane`).textContent = `Lane ${laneNum} (Yellow)`;
+                        
+                    } else if (currentPhase === 'yellow') {
+                        currentPhase = 'red';
+                        
+                        document.getElementById(`lane${laneNum}`).className = 'lane';
+                        document.getElementById(`state${laneNum}`).textContent = 'RED';
+                        
+                        if (currentLane < 3) {
+                            startLanePhase(currentLane + 1);
+                        } else {
+                            document.getElementById(`activeLane`).textContent = 'Cycle Complete';
+                            
+                            await sleep(2000);
+                            
+                            if (!isRunning) break;
+                            
+                            if (nextCycleData) {
+                                greenTimes = nextCycleData.greenTimes;
+                                yellowTimes = nextCycleData.yellowTimes;
+                                vehicleCounts = nextCycleData.vehicleCounts;
+                                totalCycleTime = nextCycleData.totalCycleTime;
+                                nextCycleData = null;
+                            } else if (currentCycle < simulationCounts.length) {
+                                vehicleCounts = simulationCounts[currentCycle];
+                                greenTimes = calculateGreenTimes(vehicleCounts);
+                                totalCycleTime = greenTimes.reduce((a, b) => a + b, 0) + 20;
+                            } else {
+                                // Simulation complete
+                                alert(`✅ Simulation complete! All ${simulationCounts.length} cycles finished.`);
+                                resetSimulation();
+                                break;
+                            }
+                            
+                            updateVehicleDisplay();
+                            updateGreenTimesDisplay();
+                            startNewCycle();
+                        }
+                    }
+                }
+            }
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
